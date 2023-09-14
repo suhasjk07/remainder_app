@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reminder App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #9dc7ff 0%, #7fafff 100%);
+            animation: backgroundAnimation 20s linear infinite alternate;
+        }
+
+        @keyframes backgroundAnimation {
+            0% {
+                transform: translateY(0);
+            }
+            100% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px 2px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            text-align: center;
+            width: 300px;
+            margin: 50px auto;
+        }
+
+        h2 {
+            color: #007BFF;
+        }
+
+        input[type="text"], input[type="date"], input[type="time"], button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .reminders {
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .reminder-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #f7f7f7;
+        }
+
+        .reminder-item button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 5px;
+        }
+
+        .reminder-item button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Reminder App</h2>
+        <input type="text" id="task" placeholder="Enter your task">
+        <input type="date" id="date">
+        <input type="time" id="time">
+        <button onclick="setReminder()">Set Reminder</button>
+        <div class="reminders" id="reminders"></div>
+    </div>
+
+    <script>
+        const reminders = [];
+
+        function setReminder() {
+            const task = document.getElementById('task').value;
+            const date = document.getElementById('date').value;
+            const time = document.getElementById('time').value;
+
+            if (!task || !date || !time) {
+                alert('Please fill in all fields.');
+                return;
+            }
+
+            const reminderDateTime = new Date(date + 'T' + time);
+            const formattedReminder = `${task} - ${date} ${time} 🕒`;
+
+            // Calculate time until the reminder
+            const now = new Date();
+            const timeUntilReminder = reminderDateTime - now;
+
+            if (timeUntilReminder <= 0) {
+                alert('Reminder time should be in the future.');
+                return;
+            }
+
+            reminders.push(formattedReminder);
+            updateReminders();
+
+            // Schedule a notification
+            setTimeout(() => {
+                showNotification(task);
+            }, timeUntilReminder);
+
+            document.getElementById('task').value = '';
+            document.getElementById('date').value = '';
+            document.getElementById('time').value = '';
+        }
+
+        function showNotification(task) {
+            if ('Notification' in window) {
+                Notification.requestPermission().then(function(permission) {
+                    if (permission === 'granted') {
+                        const notification = new Notification('Reminder', {
+                            body: `It's time to: ${task} 🕒`,
+                            icon: 'notification-icon.png', // Add your notification icon URL here
+                        });
+                    }
+                });
+            }
+        }
+
+        function updateReminders() {
+            const remindersDiv = document.getElementById('reminders');
+            remindersDiv.innerHTML = '';
+
+            reminders.forEach((reminder, index) => {
+                const reminderDiv = document.createElement('div');
+                reminderDiv.classList.add('reminder-item');
+
+                const reminderText = document.createElement('span');
+                reminderText.textContent = reminder;
+
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'Remove';
+                removeButton.onclick = () => removeReminder(index);
+
+                reminderDiv.appendChild(reminderText);
+                reminderDiv.appendChild(removeButton);
+                remindersDiv.appendChild(reminderDiv);
+            });
+        }
+
+        function removeReminder(index) {
+            reminders.splice(index, 1);
+            updateReminders();
+        }
+    </script>
+</body>
+</html>
